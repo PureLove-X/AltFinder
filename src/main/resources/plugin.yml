@@ -1,0 +1,71 @@
+name: AltFinder
+version: '1.0.0'
+main: tech.purelove.altfinder.AltFinder
+api-version: '1.21'
+author: PureLove
+prefix: AltFinder
+database: true
+load: POSTWORLD
+softdepend:
+  - PremiumVanish
+  - SuperVanish
+commands:
+  seen:
+    description: Show last login/logout information for a player
+    usage: /seen <player>
+    permission: altfinder.seen
+
+  altfinder:
+    description: AltFinder administrative commands
+    usage: /altfinder <search|reload|delete>
+    permission: altfinder.admin
+
+permissions:
+  altfinder.admin:
+    description: Full access to AltFinder admin commands
+    default: op
+    children:
+      altfinder.search: true
+      altfinder.delete: true
+      altfinder.reload: true
+      altfinder.seen: true
+      altfinder.seen.ip: true
+  altfinder.limit.bypass:
+    description: Bypass alt restriction limits
+    default: op
+
+  altfinder.search:
+    description: Search for possible alt accounts
+    default: op
+
+  altfinder.delete:
+    description: Remove stored alt/IP data
+    default: op
+
+  altfinder.reload:
+    description: Reload the AltFinder configuration
+    default: op
+
+  altfinder.seen:
+    description: Use the /seen command
+    default: op
+
+  altfinder.seen.ip:
+    description: Allow viewing IP addresses in /seen
+    default: op
+
+  altfinder.acknowledge:
+    description: Allows acknowledging known account relations to stop flagging/notificatons
+    default: op
+
+  altfinder.unacknowledge:
+    description: Allows removal of account relation acknowledgements
+    default: op
+
+  altfinder.relations:
+    description: Shows who is acknowledged with whom and why
+    default: op
+
+  altfinder.unresolved:
+    description: shows a list of players who have alt accounts that haven't been acknowledged
+    default: op

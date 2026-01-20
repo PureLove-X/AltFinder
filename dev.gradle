@@ -1,0 +1,17 @@
+// ===== DEV-ONLY TASKS =====
+
+tasks.register('restartServer', Exec) {
+    environment System.getenv()
+    workingDir 'C:\\Users\\total\\Documents\\Servers\\Server Start Files'
+    commandLine 'cmd', '/c',
+            'C:\\Users\\total\\Documents\\Servers\\Server Start Files\\restart.bat'
+}
+
+// Hook into shadowJar *after* it builds
+tasks.named('shadowJar').configure {
+    archiveClassifier.set('')
+    destinationDirectory.set(
+            file('C:\\Users\\total\\Documents\\Servers\\Dev Server\\plugins')
+    )
+    finalizedBy(tasks.named('restartServer'))
+}

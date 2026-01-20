@@ -1,0 +1,75 @@
+package tech.purelove.altfinder.command;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.command.CommandSender;
+import tech.purelove.altfinder.database.dao.AcknowledgedLinkDao;
+import tech.purelove.altfinder.database.dao.PlayerDao;
+import tech.purelove.altfinder.util.log.LogUtils;
+
+import java.sql.SQLException;
+
+public class AcknowledgeCommand {
+
+    private final PlayerDao playerDao;
+    private final AcknowledgedLinkDao ackDao;
+
+    public AcknowledgeCommand(PlayerDao playerDao, AcknowledgedLinkDao ackDao) {
+        this.playerDao = playerDao;
+        this.ackDao = ackDao;
+    }
+
+    public void execute(CommandSender sender, String[] args) {
+
+        if (!sender.hasPermission("altfinder.acknowledge")) {
+            sender.sendMessage(
+                    Component.text("You do not have permission to do that.", NamedTextColor.RED)
+            );
+            return;
+        }
+
+        if (args.length < 2) {
+            sender.sendMessage(
+                    Component.text(
+                            "Usage: /altfinder acknowledge <player1> <player2> [reason]",
+                            NamedTextColor.RED
+                    )
+            );
+            return;
+        }
+
+        try {
+            String uuid1 = playerDao.getUuidByName(args[0]);
+            String uuid2 = playerDao.getUuidByName(args[1]);
+
+            if (uuid1 == null || uuid2 == null) {
+                sender.sendMessage(
+                        Component.text("One or more players could not be found.", NamedTextColor.RED)
+                );
+                return;
+            }
+
+            String reason = args.length > 2
+                    ? String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length))
+                    : null;
+
+            ackDao.acknowledge(
+                    uuid1,
+                    uuid2,
+                    reason,
+                    sender.getName(),
+                    System.currentTimeMillis() / 1000
+            );
+
+            sender.sendMessage(
+                    Component.text("Relationship acknowledged.", NamedTextColor.GREEN)
+            );
+
+        } catch (SQLException e) {
+            sender.sendMessage(
+                    Component.text("A database error occurred.", NamedTextColor.RED)
+            );
+            LogUtils.error(e.getMessage());
+        }
+    }
+}
