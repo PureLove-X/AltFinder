@@ -57,9 +57,7 @@ public class IpLogDao {
         }
     }
     public List<String> findPossibleAlts(String uuid) throws SQLException {
-        Connection conn = database.getConnection();
-
-        try (PreparedStatement stmt = conn.prepareStatement(
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
                 """
                 SELECT DISTINCT p.current_name
                 FROM ip_log i
@@ -67,7 +65,7 @@ public class IpLogDao {
                 JOIN players p ON p.uuid = i2.uuid
                 WHERE i.uuid = ?
                   AND i2.uuid != ?
-                ORDER BY p.current_name
+                ORDER BY p.current_name COLLATE NOCASE
                 """
         )) {
             stmt.setString(1, uuid);
@@ -84,6 +82,7 @@ public class IpLogDao {
         }
     }
 
+
     public int countByIp(String ip) throws SQLException {
         Connection conn = database.getConnection();
 
@@ -96,15 +95,13 @@ public class IpLogDao {
         }
     }
     public List<String> searchByIp(String ip, int limit, int offset) throws SQLException {
-        Connection conn = database.getConnection();
-
-        try (PreparedStatement stmt = conn.prepareStatement(
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
                 """
                 SELECT p.current_name
                 FROM ip_log i
                 JOIN players p ON p.uuid = i.uuid
                 WHERE i.ip = ?
-                ORDER BY i.last_seen DESC
+                ORDER BY i.last_seen DESC, p.current_name COLLATE NOCASE
                 LIMIT ? OFFSET ?
                 """
         )) {
@@ -122,6 +119,7 @@ public class IpLogDao {
             return results;
         }
     }
+
     public int deleteByIp(String ip) throws SQLException {
         Connection conn = database.getConnection();
 

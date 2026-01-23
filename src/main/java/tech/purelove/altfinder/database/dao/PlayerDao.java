@@ -16,6 +16,10 @@ public class PlayerDao {
         this.database = database;
     }
 
+    /* =======================
+       LOGIN / LOGOUT
+       ======================= */
+
     public void updateLogin(String uuid, String username, long now) throws SQLException {
         Connection conn = database.getConnection();
 
@@ -55,11 +59,8 @@ public class PlayerDao {
         }
     }
 
-
     public void updateLogout(String uuid, long now) throws SQLException {
-        Connection conn = database.getConnection();
-
-        try (PreparedStatement stmt = conn.prepareStatement(
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
                 "UPDATE players SET last_logout = ? WHERE uuid = ?"
         )) {
             stmt.setLong(1, now);
@@ -67,14 +68,24 @@ public class PlayerDao {
             stmt.executeUpdate();
         }
     }
-    public PlayerRecord findByNameOrUuid(String input) throws SQLException {
-        Connection conn = database.getConnection();
 
-        try (PreparedStatement stmt = conn.prepareStatement(
+    /* =======================
+       LOOKUPS
+       ======================= */
+
+    public PlayerRecord findForSeen(String input) throws SQLException {
+        if (isUuid(input)) return findByUuid(input);
+        if (isIp(input)) return findByIp(input);
+        return findByName(input);
+    }
+
+    public PlayerRecord findByNameOrUuid(String input) throws SQLException {
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
                 """
                 SELECT uuid, current_name, last_login, last_logout
                 FROM players
-                WHERE uuid = ? OR current_name = ?
+                WHERE uuid = ?
+                   OR LOWER(current_name) = LOWER(?)
                 """
         )) {
             stmt.setString(1, input);
@@ -83,53 +94,20 @@ public class PlayerDao {
             ResultSet rs = stmt.executeQuery();
             if (!rs.next()) return null;
 
-            long lastLogin = rs.getLong("last_login");
-
-            Long lastLogout = rs.getLong("last_logout");
-            if (rs.wasNull()) {
-                lastLogout = null;
-            }
-
-            return new PlayerRecord(
-                    rs.getString("uuid"),
-                    rs.getString("current_name"),
-                    lastLogin,
-                    lastLogout
-            );
+            return mapPlayer(rs);
         }
     }
 
-    public PlayerRecord findForSeen(String input) throws SQLException {
-        if (isUuid(input)) {
-            return findByUuid(input);
-        }
-
-        if (isIp(input)) {
-            return findByIp(input);
-        }
-
-        // default: name only
-        return findByName(input);
-    }
-    private boolean isUuid(String input) {
-        return input.matches(
-                "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-        );
-    }
-
-    private boolean isIp(String input) {
-        return input.matches("^\\d{1,3}(\\.\\d{1,3}){3}$");
-    }
     public PlayerRecord findByName(String name) throws SQLException {
-        try (var stmt = database.getConnection().prepareStatement(
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
                 """
                 SELECT uuid, current_name, last_login, last_logout
                 FROM players
-                WHERE current_name = ?
+                WHERE LOWER(current_name) = LOWER(?)
                 """
         )) {
             stmt.setString(1, name);
-            var rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery();
             if (!rs.next()) return null;
 
             return mapPlayer(rs);
@@ -137,7 +115,7 @@ public class PlayerDao {
     }
 
     public PlayerRecord findByUuid(String uuid) throws SQLException {
-        try (var stmt = database.getConnection().prepareStatement(
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
                 """
                 SELECT uuid, current_name, last_login, last_logout
                 FROM players
@@ -145,14 +123,15 @@ public class PlayerDao {
                 """
         )) {
             stmt.setString(1, uuid);
-            var rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery();
             if (!rs.next()) return null;
 
             return mapPlayer(rs);
         }
     }
+
     public PlayerRecord findByIp(String ip) throws SQLException {
-        try (var stmt = database.getConnection().prepareStatement(
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
                 """
                 SELECT p.uuid, p.current_name, p.last_login, p.last_logout
                 FROM players p
@@ -163,19 +142,32 @@ public class PlayerDao {
                 """
         )) {
             stmt.setString(1, ip);
-            var rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery();
             if (!rs.next()) return null;
 
             return mapPlayer(rs);
         }
     }
+
+    public String getUuidByName(String name) throws SQLException {
+        try (PreparedStatement stmt = database.getConnection().prepareStatement(
+                "SELECT uuid FROM players WHERE LOWER(current_name) = LOWER(?)"
+        )) {
+            stmt.setString(1, name);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() ? rs.getString("uuid") : null;
+        }
+    }
+
+    /* =======================
+       HELPERS
+       ======================= */
+
     private PlayerRecord mapPlayer(ResultSet rs) throws SQLException {
         long lastLogin = rs.getLong("last_login");
 
         Long lastLogout = rs.getLong("last_logout");
-        if (rs.wasNull()) {
-            lastLogout = null;
-        }
+        if (rs.wasNull()) lastLogout = null;
 
         return new PlayerRecord(
                 rs.getString("uuid"),
@@ -184,14 +176,14 @@ public class PlayerDao {
                 lastLogout
         );
     }
-    public String getUuidByName(String name) throws SQLException {
-        try (var stmt = database.getConnection().prepareStatement(
-                "SELECT uuid FROM players WHERE current_name = ?"
-        )) {
-            stmt.setString(1, name);
-            var rs = stmt.executeQuery();
-            return rs.next() ? rs.getString("uuid") : null;
-        }
+
+    private boolean isUuid(String input) {
+        return input.matches(
+                "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        );
     }
 
+    private boolean isIp(String input) {
+        return input.matches("^\\d{1,3}(\\.\\d{1,3}){3}$");
+    }
 }

@@ -33,6 +33,7 @@ public class NameHistoryDao {
             stmt.executeUpdate();
         }
     }
+
     public String getPreviousUsername(String uuid, String current) throws SQLException {
         Connection conn = database.getConnection();
 
@@ -40,7 +41,8 @@ public class NameHistoryDao {
                 """
                 SELECT username
                 FROM name_history
-                WHERE uuid = ? AND username != ?
+                WHERE uuid = ?
+                  AND LOWER(username) != LOWER(?)
                 ORDER BY last_seen DESC
                 LIMIT 1
                 """
@@ -52,5 +54,4 @@ public class NameHistoryDao {
             return rs.next() ? rs.getString("username") : null;
         }
     }
-
 }
