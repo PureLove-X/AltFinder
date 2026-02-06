@@ -219,6 +219,11 @@ Staff can acknowledge known relationships to prevent repeated alerts.
 Example:
 ```
 PureLove ↔ MrsServerDev 
-Shared IPs: 127.0.0.1, 56.20.19.1
+Shared IPs: 127.0.0.1
 Reason: "Dev Testing Account"
 ```
+
+
+## Planned Improvements
+- More hands on configuration
+- Optional Litebans dependency where it will link with Litebans already existing system and commands. 
