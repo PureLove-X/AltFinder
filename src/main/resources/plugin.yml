@@ -1,5 +1,5 @@
 name: AltFinder
-version: '1.0.0'
+version: '1.0.2'
 main: tech.purelove.altfinder.AltFinder
 api-version: '1.21'
 author: PureLove
@@ -30,6 +30,10 @@ permissions:
       altfinder.reload: true
       altfinder.seen: true
       altfinder.seen.ip: true
+      altfinder.acknowledge: true
+      altfinder.unacknowledge: true
+      altfinder.relations: true
+      altfinder.unresolved: true
   altfinder.limit.bypass:
     description: Bypass alt restriction limits
     default: op
@@ -40,10 +44,6 @@ permissions:
 
   altfinder.delete:
     description: Remove stored alt/IP data
-    default: op
-
-  altfinder.reload:
-    description: Reload the AltFinder configuration
     default: op
 
   altfinder.seen:

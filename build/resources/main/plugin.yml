@@ -1,5 +1,5 @@
 name: AltFinder
-version: '1.0.1'
+version: '1.0.0'
 main: tech.purelove.altfinder.AltFinder
 api-version: '1.21'
 author: PureLove
