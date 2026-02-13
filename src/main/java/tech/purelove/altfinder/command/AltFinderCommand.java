@@ -18,7 +18,7 @@ public class AltFinderCommand implements CommandExecutor, TabCompleter {
     private final UnresolvedCommand unresolved;
     private final ResolvedCommand resolved;
     private static final List<String> SUBCOMMANDS =
-            List.of("search", "reload", "delete", "acknowledge", "unacknowledge", "unresolved", "resolved");
+            List.of("search", "delete", "acknowledge", "unacknowledge", "unresolved", "resolved");
 
     public AltFinderCommand(
             SearchCommand search,

@@ -16,6 +16,9 @@ import tech.purelove.altfinder.util.RelativeTime;
 import tech.purelove.altfinder.util.log.LogUtils;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class SeenCommand implements CommandExecutor, TabCompleter {
@@ -89,11 +92,19 @@ public class SeenCommand implements CommandExecutor, TabCompleter {
 
             Component lastSeen;
 
+
             if (player.lastLogout() == null) {
+
                 lastSeen = Component.text("Online now", NamedTextColor.GREEN);
             } else {
+                Instant instant = Instant.ofEpochSecond(player.lastLogout());
+
+                String formatted = DateTimeFormatter
+                        .ofPattern("yyyy-MM-dd")
+                        .withZone(ZoneId.systemDefault())
+                        .format(instant);
                 lastSeen = Component.text(
-                        RelativeTime.format(player.lastLogout()),
+                        formatted + " (" + RelativeTime.format(player.lastLogout()) + ")",
                         NamedTextColor.WHITE
                 );
             }
